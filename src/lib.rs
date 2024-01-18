@@ -25,7 +25,7 @@ fn bucket_by_frequency<'a, T: Eq + Hash>(
     ))
 }
 
-fn top_k_buckets<'a, 'b, T: Eq + Hash>(buckets: &'b Buckets<'a, T>, k: usize) -> Vec<&'a T> {
+fn top_k_buckets<'a, T: Eq + Hash>(buckets: &Buckets<'a, T>, k: usize) -> Vec<&'a T> {
     let ret = buckets
         .0
         .iter()
