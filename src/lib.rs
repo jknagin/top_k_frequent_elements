@@ -13,8 +13,8 @@ fn get_frequency_count<'a, T: Eq + Hash>(data: &'a [T]) -> FrequencyCount<'a, T>
 
 struct Buckets<'a, T: Eq + Hash>(Vec<Vec<&'a T>>);
 
-fn bucket_by_frequency<'a, T: Eq + Hash>(
-    frequency_count: FrequencyCount<'a, T>,
+fn bucket_by_frequency<'a, 'b, T: Eq + Hash>(
+    frequency_count: &'b FrequencyCount<'a, T>,
     k: usize,
 ) -> Buckets<'a, T> {
     Buckets(
@@ -28,7 +28,7 @@ fn bucket_by_frequency<'a, T: Eq + Hash>(
     )
 }
 
-fn top_k_buckets<'a, T: Eq + Hash>(buckets: Buckets<'a, T>, k: usize) -> Vec<&'a T> {
+fn top_k_buckets<'a, 'b, T: Eq + Hash>(buckets: &'b Buckets<'a, T>, k: usize) -> Vec<&'a T> {
     let ret = buckets
         .0
         .iter()
@@ -49,8 +49,8 @@ fn top_k_buckets<'a, T: Eq + Hash>(buckets: Buckets<'a, T>, k: usize) -> Vec<&'a
 
 pub fn top_k_most_frequent<'a, T: Eq + Hash>(data: &'a [T], k: usize) -> Vec<&'a T> {
     let frequency_count = get_frequency_count(data);
-    let buckets = bucket_by_frequency(frequency_count, k);
-    top_k_buckets(buckets, k)
+    let buckets = bucket_by_frequency(&frequency_count, k);
+    top_k_buckets(&buckets, k)
 }
 
 #[cfg(test)]
