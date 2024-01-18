@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 struct FrequencyCount<'a, T: Eq + Hash>(HashMap<&'a T, usize>);
 
-fn get_frequency_count<'a, T: Eq + Hash>(data: &'a [T]) -> FrequencyCount<'a, T> {
+fn get_frequency_count<T: Eq + Hash>(data: &[T]) -> FrequencyCount<T> {
     FrequencyCount(data.iter().fold(HashMap::new(), |mut acc, x| {
         let count = acc.entry(x).or_default();
         *count += 1;
@@ -13,19 +13,16 @@ fn get_frequency_count<'a, T: Eq + Hash>(data: &'a [T]) -> FrequencyCount<'a, T>
 
 struct Buckets<'a, T: Eq + Hash>(Vec<Vec<&'a T>>);
 
-fn bucket_by_frequency<'a, 'b, T: Eq + Hash>(
-    frequency_count: &'b FrequencyCount<'a, T>,
-    k: usize,
+fn bucket_by_frequency<'a, T: Eq + Hash>(
+    frequency_count: &FrequencyCount<'a, T>,
 ) -> Buckets<'a, T> {
-    Buckets(
-        frequency_count
-            .0
-            .iter()
-            .fold(vec![vec![]; k], |mut acc, (item, count)| {
-                acc[*count - 1].push(item);
-                acc
-            }),
-    )
+    Buckets(frequency_count.0.iter().fold(
+        vec![vec![]; frequency_count.0.len()],
+        |mut acc, (item, count)| {
+            acc[*count - 1].push(item);
+            acc
+        },
+    ))
 }
 
 fn top_k_buckets<'a, 'b, T: Eq + Hash>(buckets: &'b Buckets<'a, T>, k: usize) -> Vec<&'a T> {
@@ -47,9 +44,9 @@ fn top_k_buckets<'a, 'b, T: Eq + Hash>(buckets: &'b Buckets<'a, T>, k: usize) ->
     ret
 }
 
-pub fn top_k_most_frequent<'a, T: Eq + Hash>(data: &'a [T], k: usize) -> Vec<&'a T> {
+pub fn top_k_most_frequent<T: Eq + Hash>(data: &[T], k: usize) -> Vec<&T> {
     let frequency_count = get_frequency_count(data);
-    let buckets = bucket_by_frequency(&frequency_count, k);
+    let buckets = bucket_by_frequency(&frequency_count);
     top_k_buckets(&buckets, k)
 }
 
@@ -60,8 +57,8 @@ mod tests {
     #[test]
     fn test_123() {
         assert_eq!(
-            vec![&1, &2, &3],
-            top_k_most_frequent(&[1, 1, 1, 2, 2, 3], 3)
+            vec![&10, &20, &30],
+            top_k_most_frequent(&[10, 10, 10, 20, 20, 30], 3)
         );
     }
 
@@ -79,5 +76,13 @@ mod tests {
             vec![&1, &2, &3],
             top_k_most_frequent(&[1, 1, 1, 2, 2, 3], 7)
         );
+    }
+
+    #[test]
+    fn test_not_all_elements_are_in_top_k_most_frequent() {
+        assert_eq!(
+            vec![&1, &2, &3],
+            top_k_most_frequent(&[3, 3, 1, 1, 1, 1, 2, 2, 2, 6, 1234], 3)
+        )
     }
 }
