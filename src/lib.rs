@@ -1,23 +1,39 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-pub fn top_k_most_frequent<T: Eq + Hash>(data: &[T], k: usize) -> Vec<&T> {
-    let frequency_count = data.iter().fold(HashMap::<&T, usize>::new(), |mut acc, x| {
+struct FrequencyCount<'a, T: Eq + Hash>(HashMap<&'a T, usize>);
+
+fn get_frequency_count<'a, T: Eq + Hash>(data: &'a [T]) -> FrequencyCount<'a, T> {
+    FrequencyCount(data.iter().fold(HashMap::new(), |mut acc, x| {
         let count = acc.entry(x).or_default();
         *count += 1;
         acc
-    });
-    let buckets: Vec<Vec<&T>> =
+    }))
+}
+
+struct Buckets<'a, T: Eq + Hash>(Vec<Vec<&'a T>>);
+
+fn bucket_by_frequency<'a, T: Eq + Hash>(
+    frequency_count: FrequencyCount<'a, T>,
+    k: usize,
+) -> Buckets<'a, T> {
+    Buckets(
         frequency_count
+            .0
             .iter()
             .fold(vec![vec![]; k], |mut acc, (item, count)| {
                 acc[*count - 1].push(item);
                 acc
-            });
-    let ret: Vec<&T> = buckets
+            }),
+    )
+}
+
+fn top_k_buckets<'a, T: Eq + Hash>(buckets: Buckets<'a, T>, k: usize) -> Vec<&'a T> {
+    let ret = buckets
+        .0
         .iter()
         .rev()
-        .fold(Vec::<&T>::new(), |mut acc, bucket| {
+        .fold(Vec::<&'a T>::new(), |mut acc, bucket| {
             if !bucket.is_empty() && acc.len() < k {
                 for element in bucket {
                     acc.push(element);
@@ -29,6 +45,12 @@ pub fn top_k_most_frequent<T: Eq + Hash>(data: &[T], k: usize) -> Vec<&T> {
             acc
         });
     ret
+}
+
+pub fn top_k_most_frequent<'a, T: Eq + Hash>(data: &'a [T], k: usize) -> Vec<&'a T> {
+    let frequency_count = get_frequency_count(data);
+    let buckets = bucket_by_frequency(frequency_count, k);
+    top_k_buckets(buckets, k)
 }
 
 #[cfg(test)]
