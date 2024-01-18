@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-pub fn top_k_most_frequent<T: PartialEq + Eq + Hash>(data: &[T], k: usize) -> Vec<&T> {
+pub fn top_k_most_frequent<T: Eq + Hash>(data: &[T], k: usize) -> Vec<&T> {
     let frequency_count = data.iter().fold(HashMap::<&T, usize>::new(), |mut acc, x| {
         let count = acc.entry(x).or_default();
         *count += 1;
