@@ -49,6 +49,13 @@ mod tests {
             vec![&1, &2, &3],
             top_k_most_frequent(&[1, 1, 1, 2, 2, 3], 6)
         );
+    }
 
+    #[test]
+    fn test_k_greater_than_n() {
+        assert_eq!(
+            vec![&1, &2, &3],
+            top_k_most_frequent(&[1, 1, 1, 2, 2, 3], 7)
+        );
     }
 }
